@@ -20,3 +20,16 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+#define SYS_create_container 22
+#define SYS_destroy_container 23
+#define SYS_join_container 24
+#define SYS_leave_container 25
+#define SYS_scheduler_log_on 26
+#define SYS_scheduler_log_off 27
+#define SYS_ps 28
+#define SYS_get_cid 29
+#define SYS_maintain_inum 30
+#define SYS_accessibility 31
+#define SYS_maintain_creations 32
+#define SYS_find_source 33
+

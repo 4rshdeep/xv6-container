@@ -15,6 +15,7 @@
 #include "sleeplock.h"
 #include "file.h"
 #include "fcntl.h"
+// #include "user.h"
 
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
@@ -265,6 +266,14 @@ create(char *path, short type, short major, short minor)
   ip->major = major;
   ip->minor = minor;
   ip->nlink = 1;
+
+  //// PE /////
+  // ip->cid = 0;
+  // for (int i = 0; i < CPROCS; ++i)
+  // {
+  //   ip->not_allowed[i] = 0;
+  // }
+  /////////////
   iupdate(ip);
 
   if(type == T_DIR){  // Create . and .. entries.
@@ -283,6 +292,46 @@ create(char *path, short type, short major, short minor)
   return ip;
 }
 
+struct inode*
+create_file(char *path)
+{
+
+  int fd;
+  struct file *f;
+  struct inode *ip;
+  int cid = get_cid_helper();
+
+  // if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
+    // return -1;
+
+  begin_op();
+
+  // if(omode & O_CREATE){
+    ip = create(path, T_FILE, 0, 0);
+    maintain_inum_helper(cid, -1, ip->inum);
+    if(ip == 0){
+      end_op();
+      return ip;
+    }
+  // } 
+  if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
+    if(f)
+      fileclose(f);
+    iunlockput(ip);
+    end_op();
+    return ip;
+  }
+  iunlock(ip);
+  end_op();
+  // PE Restrict access  see cid
+  f->type = FD_INODE;
+  f->ip = ip;
+  f->off = 0;
+  // f->readable = !(omode & O_WRONLY);
+  // f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+  return ip;
+}
+
 int
 sys_open(void)
 {
@@ -290,6 +339,7 @@ sys_open(void)
   int fd, omode;
   struct file *f;
   struct inode *ip;
+  int cid = get_cid_helper();
 
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;
@@ -297,7 +347,27 @@ sys_open(void)
   begin_op();
 
   if(omode & O_CREATE){
-    ip = create(path, T_FILE, 0, 0);
+    // if(cid!=0){
+    //     char *t1 = path;
+    //     char *npath = (char *) kalloc();
+    //     char *t2 = npath;
+    //     while(*t1 != '\0') {
+    //       *t2 = *t1;
+    //       t2++;
+    //       t1++;
+    //     }    
+    //     *t2 = '-';
+    //     t2++;
+    //     *t2 = '0'+myproc()->cid;
+    //     t2++;
+    //     *t2 = '\0';
+    //     path = npath; 
+    // cprintf("OK %s\n", path);
+    // }
+
+    ip = create(path , T_FILE, 0, 0);
+
+    maintain_inum_helper(cid, -1, ip->inum);
     if(ip == 0){
       end_op();
       return -1;
@@ -324,6 +394,46 @@ sys_open(void)
   }
   iunlock(ip);
   end_op();
+  // PE Restrict access  see cid
+  if(accessibility_helper(cid, ip->inum) == 0){
+    // cprintf("Not your file bro\n");
+    return -1;
+  }
+  if (((omode & O_WRONLY) || (omode & O_RDWR))&&cid!=0) {
+    // append string
+    // create new path
+    char *t1 = path;
+    char *npath = (char *) kalloc();
+    char *t2 = npath;
+    while(*t1 != '\0') {
+      *t2 = *t1;
+      t2++;
+      t1++;
+    }    
+    *t2 = '-';
+    t2++;
+    *t2 = '0'+myproc()->cid;
+    t2++;
+    *t2 = '\0';
+
+    // TODO SYSCALL
+    // cprintf("Opened path %s\n", npath);
+
+    struct inode* new_ip = create_file(npath); 
+    maintain_inum_helper(myproc()->cid, ip->inum, new_ip->inum);
+    maintain_creations_helper( cid, new_ip->inum);
+    char buf[512];
+    int off = 0;
+    int n = 0;
+    if ((n=readi(ip, buf, off, sizeof(buf))) > 0) {
+      writei(new_ip, buf, off, n);
+      off += n;
+    }
+    // 
+    // myproc()->cid
+    ip = new_ip;
+    path = npath;
+  }
 
   f->type = FD_INODE;
   f->ip = ip;

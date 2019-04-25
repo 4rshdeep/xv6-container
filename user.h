@@ -23,6 +23,19 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int create_container (int);
+int destroy_container (int);
+int join_container (int);
+int leave_container (void);
+int scheduler_log_on (void);
+int scheduler_log_off (void);
+int ps(void);
+int get_cid(void);
+int maintain_inum(int, uint, uint);
+int maintain_creations(int, uint);
+int find_source(int, uint);
+int accessibility(int, uint);
+
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -37,3 +50,4 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+

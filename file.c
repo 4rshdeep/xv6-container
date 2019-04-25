@@ -9,6 +9,7 @@
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "file.h"
+// #include "proc."
 
 struct devsw devsw[NDEV];
 struct {
@@ -124,6 +125,20 @@ filewrite(struct file *f, char *addr, int n)
   if(f->type == FD_PIPE)
     return pipewrite(f->pipe, addr, n);
   if(f->type == FD_INODE){
+    int cid = get_cid_helper();
+    if (!(f->ip->cid == 0 || f->ip->cid == cid)) {
+      cprintf("Unauthorised access\n");
+      return -1;
+    }
+    // if (f->ip->cid == 0) {
+    //   // PE : COW
+    //   //make a copy 
+    //   //add to kernels file table
+    // }
+    // else {
+    //   // no need to do anything
+
+    // }
     // write a few blocks at a time to avoid exceeding
     // the maximum log transaction size, including
     // i-node, indirect block, allocation blocks,

@@ -445,6 +445,10 @@ stati(struct inode *ip, struct stat *st)
   st->type = ip->type;
   st->nlink = ip->nlink;
   st->size = ip->size;
+  // st->cid = ip->cid;
+  // for (int i = 0; i < CPROCS; ++i) {
+  //   st->not_allowed[i] = ip->not_allowed[i];
+  // }
 }
 
 //PAGEBREAK!
@@ -540,7 +544,7 @@ dirlookup(struct inode *dp, char *name, uint *poff)
       // entry matches path element
       if(poff)
         *poff = off;
-      inum = de.inum;
+      inum = de.inum;  // getting inum from directory entry
       return iget(dp->dev, inum);
     }
   }

@@ -49,6 +49,8 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  int cid;                     //container identity
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -56,3 +58,29 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
+#define CPROCS 64
+#define CMAXINUMS 20
+
+struct container {
+  int uid;
+  int proc[CPROCS];
+  int num_procs;
+
+  int my_inums[CMAXINUMS];
+  int my_head, not_my_head;
+  int not_my_inums[CMAXINUMS];
+  int my_creations[CMAXINUMS];
+  int my_chead;
+};
+
+int log_toggle;
+
+int create_container_helper(int);
+int join_container_helper(int);
+int leave_helper();
+int destroy_helper(int);
+void procdump_container(void);
+int maintain_inum_helper(int, uint,  uint);
+int accessibility_helper(int, uint);
+int maintain_creations_helper(int, uint);
+int find_source_helper(int, uint);

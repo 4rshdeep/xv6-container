@@ -1,3 +1,5 @@
+#define CPROCS 64
+
 struct file {
   enum { FD_NONE, FD_PIPE, FD_INODE } type;
   int ref; // reference count
@@ -23,6 +25,9 @@ struct inode {
   short nlink;
   uint size;
   uint addrs[NDIRECT+1];
+
+  int cid;
+  int not_allowed[CPROCS]; // 0 for allowed 1 for not allowed
 };
 
 // table mapping major device number to

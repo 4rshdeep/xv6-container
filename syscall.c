@@ -103,6 +103,20 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+extern int sys_create_container(void);
+extern int sys_join_container(void);
+extern int sys_leave_container(void);
+extern int sys_destroy_container(void);
+extern int sys_scheduler_log_on(void);
+extern int sys_scheduler_log_off(void);
+extern int sys_ps(void);
+extern int sys_get_cid(void);
+extern int sys_maintain_inum(void);
+extern int sys_maintain_creations(void);
+extern int sys_find_source(void);
+extern int sys_accessibility(void);
+// extern int sys_uptime(void);
+
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -126,6 +140,18 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_create_container]   sys_create_container,
+[SYS_destroy_container]  sys_destroy_container,
+[SYS_join_container]     sys_join_container,
+[SYS_leave_container]    sys_leave_container,
+[SYS_scheduler_log_on]   sys_scheduler_log_on,
+[SYS_scheduler_log_off]  sys_scheduler_log_off,
+[SYS_ps]  sys_ps,
+[SYS_get_cid]  sys_get_cid,
+[SYS_maintain_inum]  sys_maintain_inum,
+[SYS_accessibility]  sys_accessibility,
+[SYS_maintain_creations]  sys_maintain_creations,
+[SYS_find_source]  sys_find_source,
 };
 
 void
